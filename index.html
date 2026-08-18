@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трансляция камеры — OpenCode</title>
+    <!-- Подключаем HLS.js для воспроизведения m3u8 в браузерах -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -44,13 +46,14 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        iframe {
+        video {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: none;
+            object-fit: cover;
+            background: #000;
         }
         footer {
             margin-top: auto;
@@ -66,11 +69,35 @@
     </header>
     <div class="container">
         <div class="video-wrapper">
-            <iframe src="https://moidom.citylink.pro/pub/91555?view=list" allowfullscreen></iframe>
+            <video id="video" controls autoplay muted playsinline></video>
         </div>
     </div>
     <footer>
         OpenCode &copy; 2026
     </footer>
+
+    <script>
+        var video = document.getElementById('video');
+        var videoSrc = 'https://s2.moidom.citylink.pro/s/private/olxWtcteeIR3QXOpsuu2gQ/1787173200/0000091555.m3u8';
+        
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                video.play().catch(function(error) {
+                    console.log("Автовоспроизведение заблокировано браузером:", error);
+                });
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Для Safari / iOS
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata',function() {
+                video.play().catch(function(error) {
+                    console.log("Автовоспроизведение заблокировано браузером:", error);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
